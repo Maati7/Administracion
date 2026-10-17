@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Administración</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#EEF2F5;--card:#FFFFFF;--ink:#13293D;--muted:#5B6B7A;--line:#D3DCE3;--harbor:#0E3A5B;--signal:#F2B705;--ok:#2E7D5B;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0D1B27;--card:#132636;--ink:#E6EDF2;--muted:#93A4B3;--line:#24394B;--harbor:#7FB3D9;--ok:#6CC59A}}
+:root[data-theme="dark"]{--bg:#0D1B27;--card:#132636;--ink:#E6EDF2;--muted:#93A4B3;--line:#24394B;--harbor:#7FB3D9;--ok:#6CC59A}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.5 'Barlow',system-ui,-apple-system,sans-serif}
+.wrap{max-width:960px;margin:0 auto;padding:20px 16px 48px}
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;border-bottom:4px solid var(--signal);padding-bottom:12px;margin-bottom:24px}
+h1{font:600 2.4rem/1 'Barlow Condensed',sans-serif;margin:0;color:var(--harbor)}
+.fecha{color:var(--muted);margin-top:4px;text-transform:capitalize}
+.btn{font:500 .95rem 'Barlow',sans-serif;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:8px 14px;border-radius:6px;cursor:pointer}
+.btn.on{background:var(--signal);border-color:var(--signal);color:#13293D}
+.grid{display:grid;gap:20px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+section{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+section h2{font:600 1.35rem 'Barlow Condensed',sans-serif;margin:0;padding:14px 16px 2px;color:var(--harbor)}
+section p.sub{margin:0;padding:0 16px 10px;color:var(--muted);font-size:.92rem}
+.mod{display:block;width:100%;text-align:left;border:0;border-top:1px solid var(--line);background:none;color:var(--ink);font:500 1.05rem 'Barlow',sans-serif;padding:13px 16px;cursor:pointer;text-decoration:none}
+.mod:hover{background:color-mix(in srgb,var(--signal) 12%,transparent)}
+.mod small{display:block;font-weight:400;font-size:.85rem;color:var(--muted)}
+.mod .estado{float:right;font-size:.8rem;font-weight:500}
+.estado.si{color:var(--ok)}.estado.no{color:var(--muted)}
+.edit{display:none;padding:0 16px 12px}
+.editando .edit{display:block}
+.edit input{width:100%;font:400 .9rem 'Barlow',sans-serif;padding:8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+.aviso{margin-top:20px;color:var(--muted);font-size:.9rem}
+.login{position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px}
+.login.oculto{display:none}
+.login form,.login .espera{width:100%;max-width:340px;background:var(--card);border:1px solid var(--line);border-top:4px solid var(--signal);border-radius:10px;padding:24px}
+.login h2{font:600 1.8rem/1 'Barlow Condensed',sans-serif;color:var(--harbor);margin:0 0 12px}
+.login label{display:block;font-size:.9rem;color:var(--muted);margin:12px 0 4px}
+.login input{width:100%;font:400 1rem 'Barlow',sans-serif;padding:10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+.login .btn{width:100%;margin-top:18px;background:var(--harbor);border-color:var(--harbor);color:var(--card)}
+.login .msg{min-height:20px;margin-top:10px;font-size:.9rem;color:#C0392B}
+.acciones{display:flex;gap:8px;align-items:center}
+.quien{color:var(--muted);font-size:.9rem}
+:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+</style>
+</head>
+<body>
+<div class="login" id="login">
+  <div class="espera" id="espera">Conectando…</div>
+  <form id="loginForm" style="display:none" autocomplete="on">
+    <h2>Administración</h2>
+    <label for="lu">Usuario</label>
+    <input id="lu" type="text" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" required>
+    <label for="lp">Contraseña</label>
+    <input id="lp" type="password" autocomplete="current-password" required>
+    <button class="btn" type="submit" id="lb">Ingresar</button>
+    <div class="msg" id="lm"></div>
+  </form>
+</div>
+<div class="wrap" id="app">
+  <header>
+    <div><h1>Administración</h1><div class="fecha" id="fecha"></div></div>
+    <div class="acciones"><span class="quien" id="quien"></span><button class="btn" id="editar">Editar links</button><button class="btn" id="salir">Salir</button></div>
+  </header>
+  <div class="grid" id="grid"></div>
+  <p class="aviso" id="aviso">Tocá un módulo para abrirlo en otra pestaña. Los que todavía no tienen link se configuran con "Editar links".</p>
+</div>
+<script>
+const PT='https://maati7.github.io/PlanillaTareas/tareas%20diarias.html';
+const SECCIONES=[
+ {t:'Buques',s:'Todo lo de cada buque',m:[
+  {id:'checklist',n:'Checklist y datos',d:'Trámites y datos técnicos',u:PT},
+  {id:'comunicaciones',n:'Comunicaciones de embarque',d:'Previa, complementaria y definitiva',u:'https://maati7.github.io/Comunicacion.embarque/'},
+  {id:'detalle',n:'Detalle de buque y ENAPRO',d:'Desde el Excel de carga',u:'https://maati7.github.io/Detalle.buque/'},
+  {id:'posicupos',n:'Posición y cupos',d:'Buques, vagones y cupos',u:'https://maati7.github.io/Posicupos/'}]},
+ {t:'Terminal',s:'Stock y camiones',m:[
+  {id:'existencias',n:'Existencias',d:'Parte del día anterior'},
+  {id:'proyeccion',n:'Proyección de cupos',d:'Semana vigente y próxima'}]},
+ {t:'Agenda',s:'Lo del equipo',m:[
+  {id:'tareas',n:'Tareas de hoy',d:'Pendientes del día',u:PT},
+  {id:'calendario',n:'Calendario',d:'Vencimientos',u:PT},
+  {id:'historial',n:'Historial',d:'Lo que se fue haciendo',u:PT}]},
+ {t:'Facturación',s:'Cobros y diferencias',m:[
+  {id:'facturacion',n:'Facturación quincenal',d:'Exportadores, conceptos y tarifas'},
+  {id:'difcalidad',n:'Diferencias de calidad',d:'De PDF a Excel'}]}
+];
+const KEY='panel_expolog_links';
+let links={};
+try{links=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){links={}}
+const url=m=>links[m.id]!==undefined?links[m.id]:(m.u||'');
+function guardar(){try{localStorage.setItem(KEY,JSON.stringify(links))}catch(e){}}
+function render(){
+ const g=document.getElementById('grid');g.innerHTML='';
+ SECCIONES.forEach(sec=>{
+  const el=document.createElement('section');
+  el.innerHTML=`<h2>${sec.t}</h2><p class="sub">${sec.s}</p>`;
+  sec.m.forEach(m=>{
+   const u=url(m);
+   const b=document.createElement('button');b.className='mod';
+   b.innerHTML=`<span class="estado ${u?'si':'no'}">${u?'Abrir':'Sin link'}</span>${m.n}<small>${m.d}</small>`;
+   b.onclick=()=>{if(u)window.open(u,'_blank','noopener');else{modoEditar(true);setTimeout(()=>document.getElementById('in-'+m.id).focus(),0)}};
+   const e=document.createElement('div');e.className='edit';
+   e.innerHTML=`<input id="in-${m.id}" type="url" placeholder="Pegá el link de esta app" value="${u}">`;
+   e.querySelector('input').onchange=ev=>{links[m.id]=ev.target.value.trim();guardar();render();modoEditar(true)};
+   el.append(b,e);
+  });
+  g.append(el);
+ });
+}
+function modoEditar(on){
+ document.getElementById('app').classList.toggle('editando',on);
+ const b=document.getElementById('editar');b.classList.toggle('on',on);b.textContent=on?'Listo':'Editar links';
+}
+document.getElementById('editar').onclick=()=>modoEditar(!document.getElementById('app').classList.contains('editando'));
+document.getElementById('fecha').textContent=new Date().toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'});
+render();
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.13.2/firebase-app-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.13.2/firebase-auth-compat.min.js"></script>
+<script>
+firebase.initializeApp({apiKey:"AIzaSyCOmTzD10kEyVWcwXVZjr3o99cK8JgQYuk",authDomain:"posicupos.firebaseapp.com",projectId:"posicupos",storageBucket:"posicupos.firebasestorage.app",messagingSenderId:"420069933145",appId:"1:420069933145:web:001f62cbad90c11c90f148"});
+const auth=firebase.auth();
+const DOM='@posicupos.firebaseapp.com';
+const toEmail=u=>{u=u.trim().toLowerCase();return u.includes('@')?u:u+DOM};
+const toUser=e=>(e||'').replace(DOM,'');
+const errTxt=c=>({'auth/invalid-credential':'Usuario o contraseña incorrectos.','auth/wrong-password':'Usuario o contraseña incorrectos.','auth/user-not-found':'Usuario o contraseña incorrectos.','auth/invalid-login-credentials':'Usuario o contraseña incorrectos.','auth/too-many-requests':'Demasiados intentos. Esperá unos minutos y probá de nuevo.','auth/network-request-failed':'Sin conexión. Revisá internet y probá de nuevo.'})[c]||('No se pudo ingresar ('+c+').');
+let dentro=false;
+auth.onAuthStateChanged(u=>{
+ const L=document.getElementById('login');
+ if(u){L.classList.add('oculto');document.getElementById('quien').textContent=toUser(u.email);dentro=true}
+ else{if(dentro){location.reload();return}
+  document.getElementById('espera').style.display='none';document.getElementById('loginForm').style.display='';L.classList.remove('oculto');setTimeout(()=>document.getElementById('lu').focus(),50)}
+});
+document.getElementById('loginForm').addEventListener('submit',async e=>{
+ e.preventDefault();const m=document.getElementById('lm'),b=document.getElementById('lb');m.textContent='';
+ b.disabled=true;b.textContent='Ingresando…';
+ try{await auth.signInWithEmailAndPassword(toEmail(document.getElementById('lu').value),document.getElementById('lp').value)}
+ catch(err){m.textContent=errTxt(err.code)}
+ finally{b.disabled=false;b.textContent='Ingresar'}
+});
+document.getElementById('salir').onclick=()=>{if(confirm('¿Cerrar sesión?'))auth.signOut()};
+</script>
+</body>
+</html>
